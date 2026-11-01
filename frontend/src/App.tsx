@@ -195,7 +195,14 @@ export default function App() {
             <>
               <p className="count">
                 <span>{filtered.length} of {allTickers.length}</span>
-                <span>{selected.length}/{MAX_SELECTED} selected</span>
+                <span className="selected-count">
+                  {selected.length}/{MAX_SELECTED} selected
+                  {selected.length > 0 && (
+                    <button className="link" onClick={() => setSelected(() => [])}>
+                      Clear
+                    </button>
+                  )}
+                </span>
               </p>
               {selected.length >= MAX_SELECTED && (
                 <p className="limit-note">Maximum of {MAX_SELECTED} reached. Deselect one to add another.</p>
@@ -251,7 +258,7 @@ export default function App() {
                   <input type="checkbox" checked={rebase} onChange={(e) => setRebase(e.target.checked)} />
                   Index to 100
                 </label>
-                <button className="ghost" onClick={() => setSelected(() => [])}>Clear selection</button>
+                <button className="clear-all" onClick={() => setSelected(() => [])}>Clear selection</button>
               </div>
 
               {view === 'chart' ? (
@@ -259,7 +266,13 @@ export default function App() {
               ) : (
                 <PriceTable tickers={selected} entries={entries} colors={colors} rebase={rebase} />
               )}
-              <StatsPanel tickers={selected} entries={entries} colors={colors} onRetry={retry} />
+              <StatsPanel
+                tickers={selected}
+                entries={entries}
+                colors={colors}
+                onRetry={retry}
+                onRemove={toggle}
+              />
             </>
           )}
         </main>

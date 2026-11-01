@@ -97,8 +97,11 @@ button {
   display: inline-flex; align-items: center; gap: 6px;
 }
 button:hover { background: var(--hover); }
-button.ghost { border-color: transparent; color: var(--text-2); }
-button.ghost:hover { color: var(--text); }
+button.link {
+  height: auto; padding: 0 2px; border: 0; background: none; color: var(--focus);
+  font-size: inherit; text-decoration: underline; text-underline-offset: 2px;
+}
+button.link:hover { background: none; text-decoration-thickness: 2px; }
 .theme-toggle { color: var(--text-2); }
 
 input[type='search'] {
@@ -117,6 +120,7 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 .check input { accent-color: var(--focus); margin: 0; }
 
 /* ---------- Ticker list ---------- */
+.selected-count { display: inline-flex; align-items: center; gap: 8px; }
 .count { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin: 10px 2px 6px; }
 .ticker-list { list-style: none; margin: 0; padding: 0; max-height: calc(100vh - 252px); min-height: 160px; overflow-y: auto; scrollbar-gutter: stable; }
 .ticker-row {
@@ -143,7 +147,7 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 .key { display: inline-block; width: 12px; height: 3px; border-radius: 2px; flex: none; }
 
 .toolbar { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
-.toolbar .ghost { margin-left: auto; }
+.toolbar .clear-all { margin-left: auto; }
 
 .chart-box { width: 100%; height: 360px; }
 .chart-placeholder { height: 360px; display: grid; place-items: center; font-size: 0.9rem; }
@@ -169,6 +173,8 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 /* ---------- Stat tiles ---------- */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
 .tile { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.tile-title .remove { margin-left: auto; width: 22px; height: 22px; padding: 0; justify-content: center; border-color: transparent; color: var(--text-muted); }
+.tile-title .remove:hover { color: var(--text); }
 .tile-title { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
 .tile-stats { margin: 0; display: grid; gap: 10px; }
 .tile-stats div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }

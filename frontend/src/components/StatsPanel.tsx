@@ -5,6 +5,7 @@ interface Props {
   entries: Record<string, TickerEntry>
   colors: Record<string, string>
   onRetry: (ticker: string) => void
+  onRemove: (ticker: string) => void
 }
 
 // Sign is always shown (and uses a true minus) so direction never depends on color alone.
@@ -13,7 +14,7 @@ function signed(value: number) {
   return `${value > 0 ? '+' : value < 0 ? '−' : ''}${text}%`
 }
 
-export function StatsPanel({ tickers, entries, colors, onRetry }: Props) {
+export function StatsPanel({ tickers, entries, colors, onRetry, onRemove }: Props) {
   return (
     <div className="stats-grid">
       {tickers.map((ticker) => {
@@ -24,6 +25,16 @@ export function StatsPanel({ tickers, entries, colors, onRetry }: Props) {
             <h3 className="tile-title">
               <span className="key" style={{ background: colors[ticker] }} />
               {ticker}
+              <button
+                className="remove"
+                onClick={() => onRemove(ticker)}
+                aria-label={`Remove ${ticker}`}
+                title={`Remove ${ticker}`}
+              >
+                <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                  <path d="M2 2l8 8M10 2l-8 8" />
+                </svg>
+              </button>
             </h3>
 
             {(!entry || entry.status === 'loading') && <p className="muted">Loading…</p>}
