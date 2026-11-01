@@ -3,7 +3,8 @@
 Take-home exercise. Full requirements: @docs/REQUIREMENTS.md (original PDF in `docs/`).
 
 ## Layout
-- `backend/` - C# / .NET minimal API, CSV loaded in memory (no DB), serves on port 5080
+- `backend/` - C# / .NET controller-based API (Controllers/Services/Models/Options), CSV loaded in memory (no DB), port 5080, Swagger at /swagger
+- `tests/Backend.Tests/` - xunit unit + integration tests (`dotnet test` from repo root)
 - `frontend/` - React + TypeScript (Vite)
 
 ## Ground rules

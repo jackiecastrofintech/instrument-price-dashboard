@@ -1,32 +1,35 @@
+using Backend.Extensions;
+using Backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Port 5000 is taken by AirPlay Receiver on macOS, so use 5080.
-builder.WebHost.UseUrls("http://localhost:5080");
-
-// Allow the React dev server (Vite = 5173, CRA = 3000) to call this API.
-builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(policy => policy
-        .WithOrigins("http://localhost:5173", "http://localhost:3000")
-        .AllowAnyHeader()
-        .AllowAnyMethod()));
-
-// Load the CSV once at startup and keep it in memory.
-builder.Services.AddSingleton(_ =>
-    PriceStore.LoadFromCsv(Path.Combine(AppContext.BaseDirectory, "Data", "market_data.csv")));
+builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+builder.Services.AddPriceData(builder.Configuration);
+builder.Services.AddFrontendCors(builder.Configuration);
+builder.Services.AddApiDocumentation();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
-app.UseCors();
 
-app.MapGet("/api/instruments", (PriceStore store) => store.Tickers);
+// Fail fast: load and validate the CSV at startup rather than on the first request.
+_ = app.Services.GetRequiredService<IPriceRepository>();
 
-app.MapGet("/api/prices/{ticker}", (string ticker, PriceStore store) =>
-    store.TryGetSeries(ticker, out var series)
-        ? Results.Ok(series)
-        : Results.NotFound(new { error = $"Unknown ticker '{ticker}'" }));
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+app.UseFrontendCors();
 
-app.MapGet("/api/prices/{ticker}/stats", (string ticker, PriceStore store) =>
-    store.TryGetSeries(ticker, out var series)
-        ? Results.Ok(StatsCalculator.Compute(ticker.ToUpperInvariant(), series))
-        : Results.NotFound(new { error = $"Unknown ticker '{ticker}'" }));
+// Swagger is a development aid; disable it in production.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/swagger/v1/swagger.json", "Instrument Price Dashboard API v1"));
+}
+
+app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
+
+/// <summary>Exposed so integration tests can use WebApplicationFactory.</summary>
+public partial class Program;

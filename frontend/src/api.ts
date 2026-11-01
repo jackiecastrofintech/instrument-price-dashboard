@@ -26,7 +26,8 @@ async function getJson<T>(path: string): Promise<T> {
     let message = `Request failed (HTTP ${res.status})`
     try {
       const body = await res.json()
-      if (body && typeof body.error === 'string') message = body.error
+      // Backend returns RFC 7807 ProblemDetails; `detail` carries the human-readable message.
+      if (body && typeof body.detail === 'string') message = body.detail
     } catch {
       // response had no JSON body; keep the generic message
     }

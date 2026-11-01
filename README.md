@@ -16,7 +16,30 @@ cd backend
 dotnet run
 ```
 
-The API serves on `http://localhost:5080`. The CSV is loaded into memory once at startup (no database).
+The API serves on `http://localhost:5080`. The CSV is loaded and validated once at startup (no database); a malformed file stops the app with a descriptive error.
+
+- **Swagger UI:** `http://localhost:5080/swagger` (Development only)
+- **Health check:** `http://localhost:5080/health`
+
+Run the tests from the repo root:
+
+```bash
+dotnet test
+```
+
+## Backend structure
+
+```
+backend/
+  Controllers/   thin HTTP layer (InstrumentsController, PricesController)
+  Services/      IPriceRepository + in-memory impl, CsvPriceLoader, IStatsCalculator
+  Models/        PricePoint, TickerStats
+  Options/       strongly typed, validated config (Data, Cors)
+  Extensions/    DI / CORS / Swagger registration
+tests/Backend.Tests/   unit tests (stats, CSV loader) and API integration tests
+```
+
+Configuration lives in `appsettings.json` (`Urls`, `Data:CsvPath`, `Cors:AllowedOrigins`) and can be overridden with environment variables, e.g. `Cors__AllowedOrigins__0`.
 
 ## Running the frontend
 
@@ -46,12 +69,12 @@ Features: search-as-you-type ticker list, price line chart with stats (total ret
 - **Daily volatility** = sample standard deviation (n-1) of simple daily returns (p[i] / p[i-1] - 1), reported as a percent
 - **Max drawdown** = largest peak-to-trough decline over the window, reported as a positive percent (13.4 means a 13.4% decline)
 
-Ticker lookup is case-insensitive.
+Ticker lookup is case-insensitive. Errors use RFC 7807 `ProblemDetails` (e.g. `{"title":"Unknown ticker","status":404,"detail":"Unknown ticker 'NOPE'"}`).
 
 ## Design notes
 
 - Port 5080 is used because macOS reserves port 5000 for AirPlay Receiver.
-- CORS is enabled only for local React dev server origins (`localhost:5173` and `localhost:3000`).
+- CORS is enabled only for GET requests from the configured origins (default: `localhost:5173` and `localhost:3000`).
 
 ## Use of AI assistance
 
