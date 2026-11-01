@@ -3,6 +3,7 @@ import { fetchInstruments } from './api'
 import { PriceChart } from './components/PriceChart'
 import { StatsPanel } from './components/StatsPanel'
 import { TickerList } from './components/TickerList'
+import { useTheme } from './hooks/useTheme'
 import { useTickerData } from './hooks/useTickerData'
 
 const MAX_SELECTED = 3
@@ -18,6 +19,7 @@ export default function App() {
   const [selected, setSelected] = useState<string[]>([])
   const [rebase, setRebase] = useState(false)
 
+  const { theme, toggle: toggleTheme } = useTheme()
   const { entries, retry } = useTickerData(selected)
 
   const loadInstruments = useCallback(() => {
@@ -56,6 +58,13 @@ export default function App() {
     <div className="app">
       <header>
         <h1>Instrument Price Dashboard</h1>
+        <button
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+        </button>
       </header>
 
       <div className="layout">

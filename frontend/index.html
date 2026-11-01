@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      // Apply the saved theme (default: dark) before first paint to avoid a flash.
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
+      } catch {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
     <title>Instrument Price Dashboard</title>
   </head>
   <body>

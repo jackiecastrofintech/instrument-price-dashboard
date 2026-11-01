@@ -10,7 +10,8 @@ import {
 } from 'recharts'
 import type { TickerEntry } from '../hooks/useTickerData'
 
-export const SERIES_COLORS = ['#2563eb', '#ea580c', '#16a34a']
+// Theme-aware colors defined in index.css.
+export const SERIES_COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)']
 
 interface Props {
   tickers: string[]
@@ -51,15 +52,18 @@ export function PriceChart({ tickers, entries, rebase }: Props) {
     <div className="chart-box">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={rows} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={24} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--muted)' }} stroke="var(--border-strong)" minTickGap={24} />
           <YAxis
             domain={['auto', 'auto']}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: 'var(--muted)' }}
+            stroke="var(--border-strong)"
             tickFormatter={(v: number) => v.toFixed(0)}
             width={48}
           />
           <Tooltip
+            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text)' }}
+            labelStyle={{ color: 'var(--text)' }}
             formatter={(value) => (typeof value === 'number' ? value.toFixed(2) : String(value ?? ''))}
           />
           <Legend />
