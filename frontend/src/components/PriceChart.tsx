@@ -1,6 +1,5 @@
 import {
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -8,78 +7,91 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import type { TooltipContentProps } from 'recharts'
+import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import { buildRows, formatFullDate, formatTickDate } from '../chartData'
 import type { TickerEntry } from '../hooks/useTickerData'
-
-// Theme-aware colors defined in index.css.
-export const SERIES_COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)']
 
 interface Props {
   tickers: string[]
   entries: Record<string, TickerEntry>
+  colors: Record<string, string>
   rebase: boolean
 }
 
-type Row = Record<string, number | string>
-
-/** Merge each ticker's series into one row per date, which is the shape Recharts wants. */
-function buildRows(tickers: string[], entries: Record<string, TickerEntry>, rebase: boolean): Row[] {
-  const byDate = new Map<string, Row>()
-
-  for (const ticker of tickers) {
-    const entry = entries[ticker]
-    if (entry?.status !== 'ready' || entry.prices.length === 0) continue
-
-    const base = entry.prices[0].price
-    for (const point of entry.prices) {
-      const row: Row = byDate.get(point.date) ?? { date: point.date }
-      row[ticker] = rebase ? (point.price / base) * 100 : point.price
-      byDate.set(point.date, row)
-    }
-  }
-
-  return [...byDate.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)))
+function ChartTooltip({ active, payload, label, colors, order }: Partial<TooltipContentProps<ValueType, NameType>> & {
+  colors: Record<string, string>
+  order: string[]
+}) {
+  if (!active || !payload?.length) return null
+  // Same order as the legend, not sorted by value.
+  const items = [...payload].sort((a, b) => order.indexOf(String(a.dataKey)) - order.indexOf(String(b.dataKey)))
+  return (
+    <div className="tooltip">
+      <div className="tooltip-date">{formatFullDate(String(label))}</div>
+      {items.map((item) => (
+        <div className="tooltip-row" key={String(item.dataKey)}>
+          <span className="key" style={{ background: colors[String(item.dataKey)] }} />
+          <span className="tooltip-name">{item.name}</span>
+          <span className="tooltip-value">
+            {typeof item.value === 'number' ? item.value.toFixed(2) : ''}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
-export function PriceChart({ tickers, entries, rebase }: Props) {
+export function PriceChart({ tickers, entries, colors, rebase }: Props) {
   const rows = buildRows(tickers, entries, rebase)
-  const readyTickers = tickers.filter((t) => entries[t]?.status === 'ready')
+  const ready = tickers.filter((t) => entries[t]?.status === 'ready')
 
-  if (readyTickers.length === 0) {
+  if (ready.length === 0) {
     return <div className="chart-placeholder muted">Loading chart…</div>
   }
 
   return (
-    <div className="chart-box">
+    <div className="chart-box" role="img" aria-label={`Line chart of ${ready.join(', ')}`}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={rows} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--muted)' }} stroke="var(--border-strong)" minTickGap={24} />
+        <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+          <CartesianGrid vertical={false} stroke="var(--grid)" />
+          <XAxis
+            dataKey="date"
+            tickFormatter={formatTickDate}
+            tick={{ fontSize: 12, fill: 'var(--tick)' }}
+            tickLine={false}
+            axisLine={{ stroke: 'var(--axis)' }}
+            tickMargin={8}
+            minTickGap={32}
+          />
           <YAxis
             domain={['auto', 'auto']}
-            tick={{ fontSize: 12, fill: 'var(--muted)' }}
-            stroke="var(--border-strong)"
+            tick={{ fontSize: 12, fill: 'var(--tick)' }}
             tickFormatter={(v: number) => v.toFixed(0)}
-            width={48}
+            tickLine={false}
+            axisLine={false}
+            width={44}
           />
           <Tooltip
-            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-strong)', color: 'var(--text)' }}
-            labelStyle={{ color: 'var(--text)' }}
-            formatter={(value) => (typeof value === 'number' ? value.toFixed(2) : String(value ?? ''))}
+            cursor={{ stroke: 'var(--axis)', strokeWidth: 1 }}
+            content={(props) => <ChartTooltip {...props} colors={colors} order={tickers} />}
           />
-          <Legend />
-          {tickers.map((ticker, i) =>
-            entries[ticker]?.status === 'ready' ? (
-              <Line
-                key={ticker}
-                type="monotone"
-                dataKey={ticker}
-                stroke={SERIES_COLORS[i % SERIES_COLORS.length]}
-                strokeWidth={2}
-                dot={false}
-                connectNulls
-              />
-            ) : null,
-          )}
+          {ready.map((ticker) => (
+            <Line
+              key={ticker}
+              name={ticker}
+              type="linear"
+              dataKey={ticker}
+              stroke={colors[ticker]}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              dot={false}
+              activeDot={{ r: 4, fill: colors[ticker], stroke: 'var(--surface)', strokeWidth: 2 }}
+              isAnimationActive={false}
+              connectNulls
+            />
+          ))}
         </LineChart>
       </ResponsiveContainer>
     </div>

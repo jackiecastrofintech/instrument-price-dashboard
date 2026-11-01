@@ -1,26 +1,30 @@
 import type { TickerEntry } from '../hooks/useTickerData'
-import { SERIES_COLORS } from './PriceChart'
 
 interface Props {
   tickers: string[]
   entries: Record<string, TickerEntry>
+  colors: Record<string, string>
   onRetry: (ticker: string) => void
 }
 
+// Sign is always shown (and uses a true minus) so direction never depends on color alone.
 function signed(value: number) {
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
+  const text = Math.abs(value).toFixed(2)
+  return `${value > 0 ? '+' : value < 0 ? '−' : ''}${text}%`
 }
 
-export function StatsPanel({ tickers, entries, onRetry }: Props) {
+export function StatsPanel({ tickers, entries, colors, onRetry }: Props) {
   return (
     <div className="stats-grid">
-      {tickers.map((ticker, i) => {
+      {tickers.map((ticker) => {
         const entry = entries[ticker]
-        const color = SERIES_COLORS[i % SERIES_COLORS.length]
 
         return (
-          <div className="stat-card" key={ticker} style={{ borderTopColor: color }}>
-            <h3>{ticker}</h3>
+          <section className="tile" key={ticker}>
+            <h3 className="tile-title">
+              <span className="key" style={{ background: colors[ticker] }} />
+              {ticker}
+            </h3>
 
             {(!entry || entry.status === 'loading') && <p className="muted">Loading…</p>}
 
@@ -32,18 +36,24 @@ export function StatsPanel({ tickers, entries, onRetry }: Props) {
             )}
 
             {entry?.status === 'ready' && (
-              <dl>
-                <dt>Total return</dt>
-                <dd className={entry.stats.totalReturnPct >= 0 ? 'pos' : 'neg'}>
-                  {signed(entry.stats.totalReturnPct)}
-                </dd>
-                <dt>Daily volatility</dt>
-                <dd>{entry.stats.dailyVolatilityPct.toFixed(2)}%</dd>
-                <dt>Max drawdown</dt>
-                <dd>{entry.stats.maxDrawdownPct.toFixed(2)}%</dd>
+              <dl className="tile-stats">
+                <div>
+                  <dt>Total return</dt>
+                  <dd className={entry.stats.totalReturnPct >= 0 ? 'pos' : 'neg'}>
+                    {signed(entry.stats.totalReturnPct)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Daily volatility</dt>
+                  <dd>{entry.stats.dailyVolatilityPct.toFixed(2)}%</dd>
+                </div>
+                <div>
+                  <dt>Max drawdown</dt>
+                  <dd>{entry.stats.maxDrawdownPct.toFixed(2)}%</dd>
+                </div>
               </dl>
             )}
-          </div>
+          </section>
         )
       })}
     </div>
