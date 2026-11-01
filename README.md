@@ -1,6 +1,8 @@
 # Instrument Price Dashboard
 
-A full-stack app for browsing instruments, viewing 30-day price charts, and seeing basic statistics. Backend is C# / .NET (minimal API); frontend is React (coming next).
+A full-stack app for browsing instruments, viewing 30-day price charts, and seeing basic statistics. Backend is C# / .NET (minimal API); frontend is React + TypeScript (Vite) with Recharts.
+
+The exercise brief is in [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) ([original PDF](docs/Take_Home_Instrument_Dashboard.pdf)).
 
 ## Prerequisites
 
@@ -15,6 +17,20 @@ dotnet run
 ```
 
 The API serves on `http://localhost:5080`. The CSV is loaded into memory once at startup (no database).
+
+## Running the frontend
+
+In a second terminal, with the backend running:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. The frontend calls the API at `http://localhost:5080`; set `VITE_API_URL` in `frontend/.env` to change it.
+
+Features: search-as-you-type ticker list, price line chart with stats (total return, volatility, max drawdown), loading/error states (including API unreachable and unknown ticker), and multi-select of up to 3 tickers overlaid on one chart. A "rebase to 100" toggle makes tickers at different price levels easier to compare.
 
 ## API
 
@@ -39,4 +55,4 @@ Ticker lookup is case-insensitive.
 
 ## Use of AI assistance
 
-I used Claude to help set up the .NET project on macOS and to draft the backend code. I verified the stats output against an independent Python calculation on the same data.
+I used Claude to help set up the .NET project on macOS and to draft the backend and React frontend code. I verified the stats output against an independent Python calculation on the same data.
