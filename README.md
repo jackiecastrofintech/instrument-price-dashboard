@@ -69,6 +69,20 @@ Features: search-as-you-type ticker list, price line chart with stats (total ret
 - **Daily volatility** = sample standard deviation (n-1) of simple daily returns (p[i] / p[i-1] - 1), reported as a percent
 - **Max drawdown** = largest peak-to-trough decline over the window, reported as a positive percent (13.4 means a 13.4% decline)
 
+### How max drawdown is calculated
+
+One pass over the closing prices in date order, tracking the running peak:
+
+```
+peak = first price
+for each price:
+    peak = max(peak, price)
+    drawdown = (peak - price) / peak
+max drawdown = largest drawdown seen
+```
+
+Example: prices 100, 200, 100, 150, 190 peak at 200 and later fall to 100, a 50% drawdown. The later recovery to 190 does not reduce it. A series that only rises has a drawdown of 0. Only closing prices are used, so intraday moves are not captured.
+
 Ticker lookup is case-insensitive. Errors use RFC 7807 `ProblemDetails` (e.g. `{"title":"Unknown ticker","status":404,"detail":"Unknown ticker 'NOPE'"}`).
 
 ## Design notes
