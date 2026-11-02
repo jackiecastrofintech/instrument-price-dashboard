@@ -53,7 +53,7 @@ npm run dev
 
 Open `http://localhost:5173`. The frontend calls the API at `http://localhost:5080`; set `VITE_API_URL` in `frontend/.env` to change it.
 
-![alt text](image-2.png)
+![alt text](image-1.png)
 
 Features: search-as-you-type ticker list, price line chart with stats (total return, volatility, max drawdown), loading/error states (including API unreachable and unknown ticker), and multi-select of up to 3 tickers overlaid on one chart. An "Index to 100" option rebases each series to 100 so tickers at different price levels are easier to compare, and a Table view shows the exact values behind the chart. Enter in the search box selects tickers by typing, including comma-separated lists such as `0001, 0002`. Light and dark themes are available (dark by default).
 
