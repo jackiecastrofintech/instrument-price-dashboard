@@ -86,7 +86,12 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
 
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-.sidebar { padding: 12px; position: sticky; top: 16px; }
+.sidebar {
+  padding: 12px; position: sticky; top: 16px;
+  /* Fixed cap: the ticker list absorbs any extra rows above it (e.g. the limit note), so the page never grows past the viewport. */
+  display: flex; flex-direction: column; max-height: calc(100vh - 160px);
+}
+.sidebar > * { flex-shrink: 0; }
 @media (max-width: 800px) { .sidebar { position: static; } }
 .content { padding: 20px; min-height: 480px; }
 
@@ -123,7 +128,7 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 /* ---------- Ticker list ---------- */
 .selected-count { display: inline-flex; align-items: center; gap: 8px; }
 .count { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin: 10px 2px 6px; }
-.ticker-list { list-style: none; margin: 0; padding: 0; max-height: calc(100vh - 252px); min-height: 160px; overflow-y: auto; scrollbar-gutter: stable; }
+.ticker-list { list-style: none; margin: 0; padding: 0; flex: 0 1 auto; min-height: 160px; overflow-y: auto; scrollbar-gutter: stable; }
 .ticker-row {
   position: relative; /* anchors the visually hidden checkbox to its own row */
   display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 10px; border-radius: 6px;
