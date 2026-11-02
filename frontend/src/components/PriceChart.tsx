@@ -9,8 +9,8 @@ import {
 } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
-import { buildRows, formatFullDate, formatTickDate, yAxisTicks, yAxisWidth } from '../chartData'
-import type { TickerEntry } from '../hooks/useTickerData'
+import { buildRows, formatFullDate, formatTickDate, yAxisTicks, yAxisWidth } from '../logic/chartData'
+import type { TickerEntry } from '../types'
 
 interface Props {
   tickers: string[]

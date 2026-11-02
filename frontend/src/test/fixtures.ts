@@ -1,5 +1,4 @@
-import type { TickerEntry } from '../hooks/useTickerData'
-import type { PricePoint, TickerStats } from '../types'
+import type { PricePoint, TickerEntry, TickerStats } from '../types'
 
 export const TICKERS = ['TICK0001', 'TICK0002', 'TICK0003', 'TICK0004', 'TICK0010', 'TICK0020']
 

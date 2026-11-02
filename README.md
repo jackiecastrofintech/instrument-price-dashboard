@@ -59,6 +59,22 @@ Open `http://localhost:5173`. The frontend calls the API at `http://localhost:50
 
 Features: search-as-you-type ticker list, price line chart with stats (total return, volatility, max drawdown), loading/error states (including API unreachable and unknown ticker), and multi-select of up to 3 tickers overlaid on one chart. An "Index to 100" option rebases each series to 100 so tickers at different price levels are easier to compare, and a Table view shows the exact values behind the chart. Enter in the search box selects tickers by typing, including comma-separated lists such as `0001, 0002`. Light and dark themes are available (dark by default).
 
+## Frontend structure
+
+```
+frontend/src/
+  main.tsx  App.tsx  index.css   entry point, the page, global styles and theme tokens
+  api.ts  types.ts               API client and the shared types
+  components/                    what renders: PriceChart, PriceTable, StatsPanel, TickerList
+  hooks/                         stateful React logic: useTickerData (loading, caching, retry), useTheme
+  logic/                         plain TypeScript with no React, so it is unit-tested directly:
+                                   chartData (merge series, Y-axis ticks), selection (stable colors),
+                                   tickerSearch (matching, Enter / comma lists), series (chart colors)
+  test/                          shared fixtures and test setup
+```
+
+Tests sit next to the file they cover. Dependencies point one way: components and hooks use `logic/`, and `logic/` depends only on `types.ts`.
+
 ## Frontend tests
 
 ```bash
@@ -73,9 +89,9 @@ Built with [Vitest](https://vitest.dev) and [React Testing Library](https://test
 
 | Area | File | Tests |
 | --- | --- | --- |
-| Ticker matching (exact name, number such as `1` vs `10`, unique partial match, filtering on the last comma token) and Enter / comma selection (what is added, what stays in the box, when the limit is hit) | `src/tickerSearch.test.ts` | 14 |
-| Stable series colors: deselecting one ticker never repaints another | `src/selection.test.ts` | 5 |
-| Chart data: merging series by date, Index to 100 rescaling, date formatting, and Y-axis tick selection (distinct, exact labels with the same number of decimals; narrow, wide, near-100, flat, single-point and empty ranges; several tickers) | `src/chartData.test.ts` | 26 |
+| Ticker matching (exact name, number such as `1` vs `10`, unique partial match, filtering on the last comma token) and Enter / comma selection (what is added, what stays in the box, when the limit is hit) | `src/logic/tickerSearch.test.ts` | 14 |
+| Stable series colors: deselecting one ticker never repaints another | `src/logic/selection.test.ts` | 5 |
+| Chart data: merging series by date, Index to 100 rescaling, date formatting, and Y-axis tick selection (distinct, exact labels with the same number of decimals; narrow, wide, near-100, flat, single-point and empty ranges; several tickers) | `src/logic/chartData.test.ts` | 26 |
 | API client: JSON parsing, URL encoding, `ProblemDetails` messages, unreachable API | `src/api.test.ts` | 5 |
 | Stat tiles: signed returns, loading, error + retry, remove, and the message (with no Retry) when statistics are unavailable | `src/components/StatsPanel.test.tsx` | 8 |
 | Ticker list: toggling, disabled rows at the limit, empty search | `src/components/TickerList.test.tsx` | 5 |
@@ -86,13 +102,13 @@ Built with [Vitest](https://vitest.dev) and [React Testing Library](https://test
 ### How they are written
 
 - **Test what the user sees.** Queries use roles and accessible names (`getByRole('checkbox', { name: 'TICK0001' })`), not CSS classes or component internals, so tests survive refactors and double as a light accessibility check.
-- **Logic lives outside components.** Ticker matching, selection planning and color-slot assignment are plain functions in `src/tickerSearch.ts` and `src/selection.ts`, so they are tested directly without rendering anything.
+- **Logic lives outside components.** Ticker matching, selection planning and color-slot assignment are plain functions in `src/logic/` (`tickerSearch.ts`, `selection.ts`), so they are tested directly without rendering anything.
 - **The API is mocked at the module boundary** (`vi.mock('./api')`) in the `App` and hook tests, with fixtures in `src/test/fixtures.ts`. Global setup is in `src/test/setup.ts`.
 - **Tests sit next to the code** they cover, named `*.test.ts` / `*.test.tsx`.
 
 ### Limits
 
-- The Recharts line chart is stubbed in the `App` tests. It needs real browser layout, which jsdom does not provide, so the chart's rendering (lines, tooltip, axes) is not covered; its data is (`chartData.test.ts`).
+- The Recharts line chart is stubbed in the `App` tests. It needs real browser layout, which jsdom does not provide, so the chart's rendering (lines, tooltip, axes) is not covered; its data is (`logic/chartData.test.ts`).
 - There are no end-to-end browser tests, and no visual or styling checks.
 - To check the tests actually catch regressions, I deliberately broke the code in four places (color slots, the `+` sign on returns, keeping typed text, and enforcing the limit) and confirmed the relevant tests failed each time.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { filterTickers, planSelection, resolveToken } from './tickerSearch'
-import { TICKERS } from './test/fixtures'
+import { TICKERS } from '../test/fixtures'
 
 describe('resolveToken', () => {
   it('matches an exact ticker, ignoring case and whitespace', () => {

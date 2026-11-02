@@ -1,5 +1,5 @@
-import { buildRows, formatFullDate } from '../chartData'
-import type { TickerEntry } from '../hooks/useTickerData'
+import { buildRows, formatFullDate } from '../logic/chartData'
+import type { TickerEntry } from '../types'
 
 interface Props {
   tickers: string[]

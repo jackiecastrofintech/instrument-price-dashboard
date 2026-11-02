@@ -1,4 +1,4 @@
-import type { TickerEntry } from './hooks/useTickerData'
+import type { TickerEntry } from '../types'
 
 export type Row = Record<string, number | string>
 

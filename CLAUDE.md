@@ -9,7 +9,7 @@ Take-home exercise. Full requirements: @docs/REQUIREMENTS.md (original PDF in `d
 
 ## Testing
 - Backend: `dotnet test` from the repo root. Frontend: `npm test` in `frontend/` (Vitest + React Testing Library).
-- Keep pure logic (ticker matching, selection, chart data) in plain modules under `frontend/src/` so it stays unit-testable.
+- Keep pure logic (ticker matching, selection, chart data) in plain modules under `frontend/src/logic/` so it stays unit-testable. `components/` is what renders, `hooks/` is stateful React logic, `logic/` has no React; `logic/` may depend only on `types.ts`.
 
 ## Ground rules
 - Must run locally

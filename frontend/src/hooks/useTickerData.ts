@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchPrices, fetchStats } from '../api'
-import type { PricePoint, TickerStats } from '../types'
-
-export type TickerEntry =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  /** `stats` is null, with the server's explanation in `statsMessage`, when the prices loaded but statistics are not defined (HTTP 422). */
-  | { status: 'ready'; prices: PricePoint[]; stats: TickerStats | null; statsMessage: string | null }
+import type { TickerEntry } from '../types'
 
 /** Matches by shape rather than `instanceof ApiError`, so it also holds for errors from a mocked client. */
 const hasStatus = (err: unknown, status: number) =>

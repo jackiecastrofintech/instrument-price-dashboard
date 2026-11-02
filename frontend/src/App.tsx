@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchInstruments } from './api'
-import { formatFullDate } from './chartData'
+import { formatFullDate } from './logic/chartData'
 import { PriceChart } from './components/PriceChart'
 import { PriceTable } from './components/PriceTable'
 import { StatsPanel } from './components/StatsPanel'
 import { TickerList } from './components/TickerList'
 import { useTheme } from './hooks/useTheme'
 import { useTickerData } from './hooks/useTickerData'
-import { withSlots, type Selection } from './selection'
-import { SERIES_COLORS } from './theme/series'
-import { filterTickers, planSelection } from './tickerSearch'
+import { withSlots, type Selection } from './logic/selection'
+import { SERIES_COLORS } from './logic/series'
+import { filterTickers, planSelection } from './logic/tickerSearch'
 
 const MAX_SELECTED = SERIES_COLORS.length
 

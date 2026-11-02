@@ -1,4 +1,4 @@
-import type { TickerEntry } from '../hooks/useTickerData'
+import type { TickerEntry } from '../types'
 
 interface Props {
   tickers: string[]

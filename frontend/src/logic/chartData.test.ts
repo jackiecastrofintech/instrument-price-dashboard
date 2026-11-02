@@ -8,7 +8,7 @@ import {
   type Row,
   type YAxisTicks,
 } from './chartData'
-import { ready } from './test/fixtures'
+import { ready } from '../test/fixtures'
 
 describe('buildRows', () => {
   it('merges tickers into one row per date, sorted by date', () => {
