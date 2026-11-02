@@ -48,6 +48,7 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [selection, setSelection] = useState<Selection>({ tickers: [], slots: {} })
   const [rebase, setRebase] = useState(false)
+  const [limitHits, setLimitHits] = useState(0) // bumps each time an add is blocked by the limit
   const [view, setView] = useState<View>('chart')
 
   const selected = selection.tickers
@@ -116,19 +117,27 @@ export default function App() {
     if (tokens.length === 0) return
 
     const resolved = tokens.map((token) => ({ token, ticker: resolveToken(token) }))
-    const matches = [...new Set(resolved.flatMap((r) => (r.ticker ? [r.ticker] : [])))]
 
-    setSelected((prev) => {
-      const next = [...prev]
-      for (const ticker of matches) {
-        if (next.length >= MAX_SELECTED) break
-        if (!next.includes(ticker)) next.push(ticker)
+    // Add what fits; anything that doesn't match, or doesn't fit under the limit, stays in the box.
+    let free = MAX_SELECTED - selected.length
+    const added: string[] = []
+    const leftover: string[] = []
+    let hitLimit = false
+    for (const { token, ticker } of resolved) {
+      if (!ticker) leftover.push(token)
+      else if (selected.includes(ticker) || added.includes(ticker)) continue
+      else if (free > 0) {
+        added.push(ticker)
+        free--
+      } else {
+        leftover.push(token)
+        hitLimit = true
       }
-      return next
-    })
+    }
 
-    // Keep anything that didn't match so the user can see and fix it.
-    setSearch(resolved.filter((r) => !r.ticker).map((r) => r.token).join(', '))
+    if (added.length > 0) setSelected((prev) => [...prev, ...added.filter((t) => !prev.includes(t))])
+    setSearch(leftover.join(', '))
+    if (hitLimit) setLimitHits((n) => n + 1)
   }
 
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -197,6 +206,16 @@ export default function App() {
                 <span>{filtered.length} of {allTickers.length}</span>
                 <span className="selected-count">
                   {selected.length}/{MAX_SELECTED} selected
+                  {selected.length >= MAX_SELECTED && (
+                    // Re-keyed on each blocked attempt so the flash animation replays.
+                    <span
+                      key={limitHits}
+                      className={`limit-badge${limitHits > 0 ? ' hit' : ''}`}
+                      title={`Maximum of ${MAX_SELECTED} tickers. Deselect one to add another.`}
+                    >
+                      Max
+                    </span>
+                  )}
                   {selected.length > 0 && (
                     <button className="link" onClick={() => setSelected(() => [])}>
                       Clear
@@ -204,6 +223,9 @@ export default function App() {
                   )}
                 </span>
               </p>
+              <span className="sr-only" role="status">
+                {limitHits > 0 ? `Maximum of ${MAX_SELECTED} tickers selected. Deselect one to add another.` : ''}
+              </span>
               {selected.length >= MAX_SELECTED && (
                 <p className="limit-note">Maximum of {MAX_SELECTED} reached. Deselect one to add another.</p>
               )}

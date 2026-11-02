@@ -27,10 +27,11 @@
   --error-bg: rgba(208, 59, 59, 0.08);
   --error-border: rgba(208, 59, 59, 0.3);
 
-  /* Categorical series (validated; assigned in fixed order) */
+  /* Categorical series: blue, amber, violet. Validated for color-vision safety in both themes.
+     Deliberately no red/orange/green: those read as negative/positive and are reserved for return values. */
   --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
+  --series-2: #eda100;
+  --series-3: #6250d6;
 }
 
 :root[data-theme='dark'] {
@@ -56,8 +57,8 @@
   --error-border: rgba(230, 103, 103, 0.35);
 
   --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
+  --series-2: #c98500;
+  --series-3: #9085e9;
 }
 
 /* ---------- Base ---------- */
@@ -136,6 +137,23 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 .ticker-row:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
 .marker { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--marker); flex: none; }
 .ticker-row.selected .marker { border-color: transparent; }
+/* "Max" pill beside the count; flashes when an add is blocked by the limit. */
+.limit-badge {
+  font-size: 0.68rem; font-weight: 600; line-height: 1; padding: 3px 6px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--selected); color: var(--text-2);
+}
+.limit-badge.hit { animation: limit-flash 0.6s ease-out; }
+@keyframes limit-flash {
+  0%   { background: var(--focus); border-color: var(--focus); color: #fff; transform: translateX(0); }
+  20%  { transform: translateX(-3px); }
+  40%  { transform: translateX(3px); }
+  60%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .limit-badge.hit { animation: limit-flash-still 0.6s ease-out; }
+  @keyframes limit-flash-still { 0% { background: var(--focus); border-color: var(--focus); color: #fff; } }
+}
 .limit-note { font-size: 0.78rem; color: var(--text-muted); margin: 0 2px 6px; }
 
 /* ---------- Content ---------- */
