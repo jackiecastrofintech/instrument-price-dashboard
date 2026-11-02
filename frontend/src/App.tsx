@@ -13,6 +13,9 @@ import { filterTickers, planSelection } from './tickerSearch'
 
 const MAX_SELECTED = SERIES_COLORS.length
 
+// A stable empty list, so memos that depend on the tickers don't re-run every render before they load.
+const NO_TICKERS: string[] = []
+
 type View = 'chart' | 'table'
 
 type InstrumentsState =
@@ -39,8 +42,8 @@ export default function App() {
   const { theme, toggle: toggleTheme } = useTheme()
   const { entries, retry } = useTickerData(selected)
 
-  const loadInstruments = useCallback(() => {
-    setInstruments({ status: 'loading' })
+  // Starts the request only. The initial state is already 'loading'; Retry sets it again itself.
+  const requestInstruments = useCallback(() => {
     fetchInstruments()
       .then((tickers) => setInstruments({ status: 'ready', tickers }))
       .catch((err: unknown) =>
@@ -52,10 +55,15 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    loadInstruments()
-  }, [loadInstruments])
+    requestInstruments()
+  }, [requestInstruments])
 
-  const allTickers = instruments.status === 'ready' ? instruments.tickers : []
+  const retryInstruments = () => {
+    setInstruments({ status: 'loading' })
+    requestInstruments()
+  }
+
+  const allTickers = instruments.status === 'ready' ? instruments.tickers : NO_TICKERS
 
   const filtered = useMemo(() => filterTickers(search, allTickers), [allTickers, search])
 
@@ -83,7 +91,7 @@ export default function App() {
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
   const ready = selected.filter((t) => entries[t]?.status === 'ready')
   const first = entries[ready[0]]
-  const window =
+  const dateRange =
     first?.status === 'ready' && first.prices.length > 0
       ? `${formatFullDate(first.prices[0].date)} – ${formatFullDate(first.prices[first.prices.length - 1].date)}`
       : null
@@ -136,7 +144,7 @@ export default function App() {
           {instruments.status === 'error' && (
             <div className="error-box">
               <p>{instruments.message}</p>
-              <button onClick={loadInstruments}>Retry</button>
+              <button onClick={retryInstruments}>Retry</button>
             </div>
           )}
 
@@ -194,7 +202,7 @@ export default function App() {
               <div className="content-header">
                 <div>
                   <h2>{rebase ? 'Indexed price (start = 100)' : 'Closing price'}</h2>
-                  {window && <p className="subtitle">{window}</p>}
+                  {dateRange && <p className="subtitle">{dateRange}</p>}
                 </div>
                 {selected.length > 1 && (
                   <ul className="legend" aria-label="Legend">

@@ -4,11 +4,14 @@ namespace Backend.Services;
 
 public sealed class StatsCalculator : IStatsCalculator
 {
+    /// <summary>Fewest price points a series needs for return, volatility and drawdown to be defined.</summary>
+    public const int MinimumPoints = 2;
+
     public TickerStats Compute(string ticker, IReadOnlyList<PricePoint> series)
     {
         ArgumentNullException.ThrowIfNull(series);
-        if (series.Count < 2)
-            throw new ArgumentException("At least two price points are required to compute statistics.", nameof(series));
+        if (series.Count < MinimumPoints)
+            throw new ArgumentException($"At least {MinimumPoints} price points are required to compute statistics.", nameof(series));
 
         var totalReturnPct = (series[^1].Price / series[0].Price - 1) * 100;
 

@@ -46,4 +46,18 @@ public class ApiTests(WebApplicationFactory<Program> factory) : IClassFixture<We
     [Fact]
     public async Task Health_ReturnsOk() =>
         Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync("/health")).StatusCode);
+
+    // Expected values were calculated from backend/Data/market_data.csv outside .NET (an independent
+    // calculation, not this code): total return = last/first - 1; volatility = sample standard deviation
+    // (n - 1) of simple daily returns, in percent; max drawdown = largest fall from a running peak.
+    [Fact]
+    public async Task Stats_Tick0001_MatchesIndependentlyCalculatedValues()
+    {
+        var stats = await _client.GetFromJsonAsync<TickerStats>("/api/prices/TICK0001/stats");
+
+        Assert.Equal("TICK0001", stats!.Ticker);
+        Assert.Equal(-9.167805, stats.TotalReturnPct, 4);
+        Assert.Equal(1.523165, stats.DailyVolatilityPct, 4);
+        Assert.Equal(13.384939, stats.MaxDrawdownPct, 4);
+    }
 }

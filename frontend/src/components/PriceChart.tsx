@@ -9,7 +9,7 @@ import {
 } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
-import { buildRows, formatFullDate, formatTickDate } from '../chartData'
+import { buildRows, formatFullDate, formatTickDate, yAxisTicks, yAxisWidth } from '../chartData'
 import type { TickerEntry } from '../hooks/useTickerData'
 
 interface Props {
@@ -45,6 +45,7 @@ function ChartTooltip({ active, payload, label, colors, order }: Partial<Tooltip
 export function PriceChart({ tickers, entries, colors, rebase }: Props) {
   const rows = buildRows(tickers, entries, rebase)
   const ready = tickers.filter((t) => entries[t]?.status === 'ready')
+  const yAxis = yAxisTicks(rows, ready)
 
   if (ready.length === 0) {
     return <div className="chart-placeholder muted">Loading chart…</div>
@@ -65,33 +66,39 @@ export function PriceChart({ tickers, entries, colors, rebase }: Props) {
             minTickGap={32}
           />
           <YAxis
-            domain={['auto', 'auto']}
+            ticks={yAxis.ticks.length > 0 ? yAxis.ticks : undefined}
+            domain={yAxis.ticks.length > 0 ? [yAxis.ticks[0], yAxis.ticks[yAxis.ticks.length - 1]] : ['auto', 'auto']}
             tick={{ fontSize: 12, fill: 'var(--tick)' }}
-            tickFormatter={(v: number) => v.toFixed(0)}
+            tickFormatter={(v: number) => v.toFixed(yAxis.decimals)}
             tickLine={false}
             axisLine={false}
-            width={44}
+            width={yAxisWidth(yAxis)}
           />
           <Tooltip
             cursor={{ stroke: 'var(--axis)', strokeWidth: 1 }}
             content={(props) => <ChartTooltip {...props} colors={colors} order={tickers} />}
           />
-          {ready.map((ticker) => (
-            <Line
-              key={ticker}
-              name={ticker}
-              type="linear"
-              dataKey={ticker}
-              stroke={colors[ticker]}
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              dot={false}
-              activeDot={{ r: 4, fill: colors[ticker], stroke: 'var(--surface)', strokeWidth: 2 }}
-              isAnimationActive={false}
-              connectNulls
-            />
-          ))}
+          {ready.map((ticker) => {
+            // A lone point has no line to draw, so show it as a dot.
+            const entry = entries[ticker]
+            const singlePoint = entry?.status === 'ready' && entry.prices.length === 1
+            return (
+              <Line
+                key={ticker}
+                name={ticker}
+                type="linear"
+                dataKey={ticker}
+                stroke={colors[ticker]}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                dot={singlePoint ? { r: 4, fill: colors[ticker], stroke: 'var(--surface)', strokeWidth: 2 } : false}
+                activeDot={{ r: 4, fill: colors[ticker], stroke: 'var(--surface)', strokeWidth: 2 }}
+                isAnimationActive={false}
+                connectNulls
+              />
+            )
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>

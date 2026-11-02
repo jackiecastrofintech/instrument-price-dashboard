@@ -5,7 +5,24 @@ import type { PricePoint, TickerStats } from '../types'
 export type TickerEntry =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; prices: PricePoint[]; stats: TickerStats }
+  /** `stats` is null, with the server's explanation in `statsMessage`, when the prices loaded but statistics are not defined (HTTP 422). */
+  | { status: 'ready'; prices: PricePoint[]; stats: TickerStats | null; statsMessage: string | null }
+
+/** Matches by shape rather than `instanceof ApiError`, so it also holds for errors from a mocked client. */
+const hasStatus = (err: unknown, status: number) =>
+  typeof err === 'object' && err !== null && (err as { status?: unknown }).status === status
+
+/** Statistics can be legitimately unavailable (422) without invalidating the prices; any other failure still throws. */
+const fetchStatsOrExplain = (ticker: string) =>
+  fetchStats(ticker).then(
+    (stats) => ({ stats, message: null }),
+    (err: unknown) => {
+      if (hasStatus(err, 422)) {
+        return { stats: null, message: err instanceof Error ? err.message : 'Statistics are not available' }
+      }
+      throw err
+    },
+  )
 
 /**
  * Loads prices + stats for every ticker in `tickers` and caches the results,
@@ -20,9 +37,12 @@ export function useTickerData(tickers: string[]) {
     inFlight.current.add(ticker)
     setEntries((prev) => ({ ...prev, [ticker]: { status: 'loading' } }))
 
-    Promise.all([fetchPrices(ticker), fetchStats(ticker)])
-      .then(([prices, stats]) =>
-        setEntries((prev) => ({ ...prev, [ticker]: { status: 'ready', prices, stats } })),
+    Promise.all([fetchPrices(ticker), fetchStatsOrExplain(ticker)])
+      .then(([prices, { stats, message }]) =>
+        setEntries((prev) => ({
+          ...prev,
+          [ticker]: { status: 'ready', prices, stats, statsMessage: message },
+        })),
       )
       .catch((err: unknown) =>
         setEntries((prev) => ({

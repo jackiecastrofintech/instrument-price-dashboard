@@ -46,7 +46,12 @@ export function StatsPanel({ tickers, entries, colors, onRetry, onRemove }: Prop
               </div>
             )}
 
-            {entry?.status === 'ready' && (
+            {/* Prices loaded but statistics are undefined for this ticker: explain, nothing to retry. */}
+            {entry?.status === 'ready' && entry.stats === null && (
+              <p className="muted">{entry.statsMessage}</p>
+            )}
+
+            {entry?.status === 'ready' && entry.stats !== null && (
               <dl className="tile-stats">
                 <div>
                   <dt>Total return</dt>

@@ -12,5 +12,10 @@ export function stats(ticker: string, overrides: Partial<TickerStats> = {}): Tic
 }
 
 export function ready(ticker: string, values: number[], statOverrides: Partial<TickerStats> = {}): TickerEntry {
-  return { status: 'ready', prices: prices(...values), stats: stats(ticker, statOverrides) }
+  return { status: 'ready', prices: prices(...values), stats: stats(ticker, statOverrides), statsMessage: null }
+}
+
+/** Prices loaded, but the server said statistics are not available (HTTP 422). */
+export function readyWithoutStats(values: number[], message: string): TickerEntry {
+  return { status: 'ready', prices: prices(...values), stats: null, statsMessage: message }
 }

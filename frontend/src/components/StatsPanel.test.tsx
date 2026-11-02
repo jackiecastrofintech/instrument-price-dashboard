@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { ready } from '../test/fixtures'
+import { ready, readyWithoutStats } from '../test/fixtures'
 import { StatsPanel } from './StatsPanel'
 
 const colors = { A: 'var(--series-1)', B: 'var(--series-2)' }
@@ -47,6 +47,22 @@ describe('StatsPanel', () => {
     expect(screen.getByText('Cannot reach the API')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(onRetry).toHaveBeenCalledWith('A')
+  })
+
+  it('explains why statistics are missing, as plain text with no Retry', () => {
+    const message = "'A' has 1 price point; at least 2 are needed to compute statistics."
+    renderPanel({ A: readyWithoutStats([100], message) })
+
+    expect(screen.getByText(message)).toBeInTheDocument()
+    expect(screen.getByText(message)).toHaveClass('muted')
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Total return')).not.toBeInTheDocument()
+  })
+
+  it('still lets the user remove a ticker whose statistics are unavailable', async () => {
+    const { onRemove } = renderPanel({ A: readyWithoutStats([100], 'not enough data') })
+    await userEvent.click(screen.getByRole('button', { name: 'Remove A' }))
+    expect(onRemove).toHaveBeenCalledWith('A')
   })
 
   it('removes a single ticker from its tile', async () => {
