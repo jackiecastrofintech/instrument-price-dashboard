@@ -82,18 +82,19 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 .app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; }
 .subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
 
-.layout { display: grid; grid-template-columns: 272px 1fr; gap: 16px; align-items: start; }
+.layout { display: grid; grid-template-columns: 272px 1fr; gap: 16px; align-items: stretch; }
 @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
 
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-.sidebar {
-  padding: 12px; position: sticky; top: 16px;
-  /* Fixed cap: the ticker list absorbs any extra rows above it (e.g. the limit note), so the page never grows past the viewport. */
-  display: flex; flex-direction: column; max-height: calc(100vh - 160px);
-}
-.sidebar > * { flex-shrink: 0; }
-@media (max-width: 800px) { .sidebar { position: static; } }
-.content { padding: 20px; min-height: 480px; }
+/* The sidebar never sets the row height: its content is absolutely positioned, so the chart panel decides it
+   and the sidebar stretches to match. The ticker list scrolls inside whatever height that leaves. */
+.sidebar { position: relative; }
+.sidebar-inner { position: absolute; inset: 0; padding: 12px; display: flex; flex-direction: column; }
+.sidebar-inner > * { flex-shrink: 0; }
+/* Stacked layout has no row to stretch to, so give the sidebar a height of its own. */
+@media (max-width: 800px) { .sidebar { height: 420px; } }
+/* Same minimum as a populated panel (chart + one row of stat tiles), so selecting a ticker doesn't change the layout. */
+.content { padding: 20px; min-height: 670px; }
 
 /* ---------- Controls ---------- */
 button {
@@ -128,7 +129,7 @@ input[type='search']:focus-visible { outline-offset: 0; border-color: var(--focu
 /* ---------- Ticker list ---------- */
 .selected-count { display: inline-flex; align-items: center; gap: 8px; }
 .count { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin: 10px 2px 6px; }
-.ticker-list { list-style: none; margin: 0; padding: 0; flex: 0 1 auto; min-height: 160px; overflow-y: auto; scrollbar-gutter: stable; }
+.ticker-list { list-style: none; margin: 0; padding: 0; flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
 .ticker-row {
   position: relative; /* anchors the visually hidden checkbox to its own row */
   display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 10px; border-radius: 6px;

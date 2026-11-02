@@ -127,65 +127,67 @@ export default function App() {
 
       <div className="layout">
         <aside className="panel sidebar">
-          <input
-            type="search"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') selectFromSearch()
-            }}
-            aria-label="Search tickers"
-            disabled={instruments.status !== 'ready'}
-          />
+          <div className="sidebar-inner">
+            <input
+              type="search"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') selectFromSearch()
+              }}
+              aria-label="Search tickers"
+              disabled={instruments.status !== 'ready'}
+            />
 
-          {instruments.status === 'loading' && <p className="muted pad">Loading instruments…</p>}
+            {instruments.status === 'loading' && <p className="muted pad">Loading instruments…</p>}
 
-          {instruments.status === 'error' && (
-            <div className="error-box">
-              <p>{instruments.message}</p>
-              <button onClick={retryInstruments}>Retry</button>
-            </div>
-          )}
+            {instruments.status === 'error' && (
+              <div className="error-box">
+                <p>{instruments.message}</p>
+                <button onClick={retryInstruments}>Retry</button>
+              </div>
+            )}
 
-          {instruments.status === 'ready' && (
-            <>
-              <p className="count">
-                <span>{filtered.length} of {allTickers.length}</span>
-                <span className="selected-count">
-                  {selected.length}/{MAX_SELECTED} selected
-                  {selected.length >= MAX_SELECTED && (
-                    // Re-keyed on each blocked attempt so the flash animation replays.
-                    <span
-                      key={limitHits}
-                      className={`limit-badge${limitHits > 0 ? ' hit' : ''}`}
-                      title={`Maximum of ${MAX_SELECTED} tickers. Deselect one to add another.`}
-                    >
-                      Max
-                    </span>
-                  )}
-                  {selected.length > 0 && (
-                    <button className="link" onClick={() => setSelected(() => [])}>
-                      Clear
-                    </button>
-                  )}
+            {instruments.status === 'ready' && (
+              <>
+                <p className="count">
+                  <span>{filtered.length} of {allTickers.length}</span>
+                  <span className="selected-count">
+                    {selected.length}/{MAX_SELECTED} selected
+                    {selected.length >= MAX_SELECTED && (
+                      // Re-keyed on each blocked attempt so the flash animation replays.
+                      <span
+                        key={limitHits}
+                        className={`limit-badge${limitHits > 0 ? ' hit' : ''}`}
+                        title={`Maximum of ${MAX_SELECTED} tickers. Deselect one to add another.`}
+                      >
+                        Max
+                      </span>
+                    )}
+                    {selected.length > 0 && (
+                      <button className="link" onClick={() => setSelected(() => [])}>
+                        Clear
+                      </button>
+                    )}
+                  </span>
+                </p>
+                <span className="sr-only" role="status">
+                  {limitHits > 0 ? `Maximum of ${MAX_SELECTED} tickers selected. Deselect one to add another.` : ''}
                 </span>
-              </p>
-              <span className="sr-only" role="status">
-                {limitHits > 0 ? `Maximum of ${MAX_SELECTED} tickers selected. Deselect one to add another.` : ''}
-              </span>
-              {selected.length >= MAX_SELECTED && (
-                <p className="limit-note">Maximum of {MAX_SELECTED} reached. Deselect one to add another.</p>
-              )}
-              <TickerList
-                tickers={filtered}
-                selected={selected}
-                colors={colors}
-                maxSelected={MAX_SELECTED}
-                onToggle={toggle}
-              />
-            </>
-          )}
+                {selected.length >= MAX_SELECTED && (
+                  <p className="limit-note">Maximum of {MAX_SELECTED} reached. Deselect one to add another.</p>
+                )}
+                <TickerList
+                  tickers={filtered}
+                  selected={selected}
+                  colors={colors}
+                  maxSelected={MAX_SELECTED}
+                  onToggle={toggle}
+                />
+              </>
+            )}
+          </div>
         </aside>
 
         <main className="panel content">
