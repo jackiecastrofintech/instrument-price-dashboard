@@ -7,36 +7,13 @@ import { StatsPanel } from './components/StatsPanel'
 import { TickerList } from './components/TickerList'
 import { useTheme } from './hooks/useTheme'
 import { useTickerData } from './hooks/useTickerData'
+import { withSlots, type Selection } from './selection'
 import { SERIES_COLORS } from './theme/series'
+import { filterTickers, planSelection } from './tickerSearch'
 
 const MAX_SELECTED = SERIES_COLORS.length
 
 type View = 'chart' | 'table'
-
-interface Selection {
-  tickers: string[]
-  /** Color slot per ticker. A ticker keeps its slot while selected, so deselecting another never repaints it. */
-  slots: Record<string, number>
-}
-
-function withSlots(prev: Selection, tickers: string[]): Selection {
-  const slots: Record<string, number> = {}
-  const used = new Set<number>()
-  for (const t of tickers) {
-    if (prev.slots[t] !== undefined) {
-      slots[t] = prev.slots[t]
-      used.add(prev.slots[t])
-    }
-  }
-  for (const t of tickers) {
-    if (slots[t] !== undefined) continue
-    let i = 0
-    while (used.has(i)) i++
-    slots[t] = i
-    used.add(i)
-  }
-  return { tickers, slots }
-}
 
 type InstrumentsState =
   | { status: 'loading' }
@@ -80,11 +57,7 @@ export default function App() {
 
   const allTickers = instruments.status === 'ready' ? instruments.tickers : []
 
-  // With comma-separated input, the list narrows to the token being typed (after the last comma).
-  const filtered = useMemo(() => {
-    const q = (search.split(',').pop() ?? '').trim().toLowerCase()
-    return q ? allTickers.filter((t) => t.toLowerCase().includes(q)) : allTickers
-  }, [allTickers, search])
+  const filtered = useMemo(() => filterTickers(search, allTickers), [allTickers, search])
 
   const toggle = (ticker: string) =>
     setSelected((prev) =>
@@ -95,47 +68,14 @@ export default function App() {
           : prev,
     )
 
-  /** Resolve one typed token: exact ticker ("tick0001"), its number ("0001" / "1"), or a unique partial match. */
-  const resolveToken = (token: string): string | undefined => {
-    const q = token.trim().toLowerCase()
-    if (!q) return undefined
-
-    const numeric = /^\d+$/.test(q) ? Number(q) : null
-    return (
-      allTickers.find((t) => t.toLowerCase() === q) ??
-      (numeric === null ? undefined : allTickers.find((t) => Number(t.replace(/^\D+/, '')) === numeric)) ??
-      (() => {
-        const partial = allTickers.filter((t) => t.toLowerCase().includes(q))
-        return partial.length === 1 ? partial[0] : undefined
-      })()
-    )
-  }
-
   /** Enter in the search box: select every ticker in a comma-separated list, e.g. "tick0002, 3, 0004". */
   const selectFromSearch = () => {
-    const tokens = search.split(',').map((t) => t.trim()).filter(Boolean)
-    if (tokens.length === 0) return
+    if (!search.trim()) return
 
-    const resolved = tokens.map((token) => ({ token, ticker: resolveToken(token) }))
-
-    // Add what fits; anything that doesn't match, or doesn't fit under the limit, stays in the box.
-    let free = MAX_SELECTED - selected.length
-    const added: string[] = []
-    const leftover: string[] = []
-    let hitLimit = false
-    for (const { token, ticker } of resolved) {
-      if (!ticker) leftover.push(token)
-      else if (selected.includes(ticker) || added.includes(ticker)) continue
-      else if (free > 0) {
-        added.push(ticker)
-        free--
-      } else {
-        leftover.push(token)
-        hitLimit = true
-      }
-    }
+    const { added, leftover, hitLimit } = planSelection(search, allTickers, selected, MAX_SELECTED)
 
     if (added.length > 0) setSelected((prev) => [...prev, ...added.filter((t) => !prev.includes(t))])
+    // Anything that didn't match, or didn't fit under the limit, stays in the box.
     setSearch(leftover.join(', '))
     if (hitLimit) setLimitHits((n) => n + 1)
   }
