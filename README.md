@@ -143,6 +143,10 @@ Return, volatility and drawdown need at least two price points (`StatsCalculator
 
 The UI keeps such a ticker selected, draws its single price as a dot, and shows that message in place of the stats (no Retry button, since retrying cannot help). The provided CSV has no such tickers, so this only matters for other data.
 
+![Three tickers selected: TICK0201, a test ticker with a single price, shows a "has 1 price point; at least 2 are needed to compute statistics" message in its tile with no Retry button and its price drawn as one dot on the chart. TICK0188 and TICK0185 each show a red "Cannot reach the API" error with a Retry button.](docs/screenshot-error-handling.png)
+
+*Error handling in the UI. Errors are shown per ticker, so one failure never blocks the others. **TICK0201** has a single price point: its price is still charted (as a dot) and the tile explains why there are no stats, with no Retry button because retrying cannot help. **TICK0188** and **TICK0185** were selected while the API was unreachable, so each shows the "Cannot reach the API" error with a Retry button. TICK0201 is not in the provided data: it was added to the CSV temporarily to test this case, which is why the header reads "201 instruments".*
+
 Ticker lookup is case-insensitive. Errors use RFC 7807 `ProblemDetails` (e.g. `{"title":"Unknown ticker","status":404,"detail":"Unknown ticker 'NOPE'"}`).
 
 ## Design notes
