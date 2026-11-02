@@ -121,7 +121,7 @@ export default function App() {
         <aside className="panel sidebar">
           <input
             type="search"
-            placeholder="Search or type + Enter"
+            placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
